@@ -9,6 +9,10 @@ from tsumemi.src.tsumemi.settings.board_setting_choices import (
     BoardSkinSelectionFrame,
     KomadaiSkinSelectionFrame,
 )
+from tsumemi.src.tsumemi.settings.display_setting_choices import (
+    AutoNextSelectionFrame,
+    PieceAlignmentSelectionFrame,
+)
 from tsumemi.src.tsumemi.settings.notation_setting_choices import NotationSelectionFrame
 from tsumemi.src.tsumemi.settings.piece_setting_choices import PieceSkinSelectionFrame
 
@@ -52,6 +56,23 @@ class OptionsFrame(ttk.Frame):
         self.frm_notation_choice.grid(row=0, column=0, sticky="EW")
         self.frm_notation_choice.grid_columnconfigure(0, weight=1)
 
+        self.frm_solving_options = ttk.LabelFrame(self, text="Solving")
+        self.frm_solving_options.grid(row=2, column=0, sticky="EW")
+        self.frm_auto_next = AutoNextSelectionFrame(
+            parent=self.frm_solving_options,
+            controller=parent.controller.auto_next_controller,
+        )
+        self.frm_auto_next.grid(row=0, column=0, sticky="EW")
+
+        self.frm_display_options = ttk.LabelFrame(self, text="Display")
+        self.frm_display_options.grid(row=3, column=0, sticky="EW")
+        self.frm_piece_alignment = PieceAlignmentSelectionFrame(
+            parent=self.frm_display_options,
+            controller=parent.controller.piece_alignment_controller,
+        )
+        self.frm_piece_alignment.grid(row=0, column=0, sticky="EW")
+        self.frm_piece_alignment.grid_columnconfigure(1, weight=1)
+
 
 class SettingsWindow(tk.Toplevel):
     def __init__(self, controller: Settings, *args: Any, **kwargs: Any) -> None:
@@ -62,6 +83,7 @@ class SettingsWindow(tk.Toplevel):
 
         self.options_frame = OptionsFrame(self)
         self.options_frame.grid(row=0, column=0)
+        self.options_frame.frm_auto_next.sync_from_controller()
 
         buttons_frame = ttk.Frame(self)
         buttons_frame.grid(row=1, column=0, sticky="EW")

@@ -19,6 +19,7 @@ import tsumemi.src.tsumemi.speedrun_controller as speedcon
 import tsumemi.src.tsumemi.timer_controller as timecon
 
 from tsumemi.src.shogi.parsing import kif
+from tsumemi.src.shogi.basetypes import Side
 from tsumemi.src.tsumemi import files, problem as pb, skins, timer
 from tsumemi.src.tsumemi.views import main_window_view_controller as mainviewcon
 from tsumemi.src.tsumemi.menubar import Menubar
@@ -73,6 +74,9 @@ class RootController(evt.IObserver):
         self.menubar: Menubar = Menubar(parent=self.root, controller=self)
 
         self.main_viewcon = mainviewcon.MainWindowViewController(root, self)
+        self.main_viewcon.apply_display_settings(
+            self.settings.piece_alignment_controller.get_alignment()
+        )
 
         # Keyboard shortcuts
         self.bindings = Bindings(self)
@@ -117,6 +121,9 @@ class RootController(evt.IObserver):
         self.main_viewcon.set_solution(self.solution_str_from_game(game))
         self.main_game.set_game(game)
 
+        self.main_viewcon.set_board_orientation_for_problem(
+            game.position.turn == Side.GOTE
+        )
         self.main_viewcon.set_main_board(game.position)
         self.main_viewcon.refresh_move_list()
         self.main_viewcon.enable_move_input()
@@ -163,6 +170,10 @@ class RootController(evt.IObserver):
         self.notation_writer.change_move_writer(move_writer)
         self.refresh_solution_text()
         self.main_viewcon.refresh_move_list()
+        return
+
+    def apply_display_settings(self, piece_alignment: str) -> None:
+        self.main_viewcon.apply_display_settings(piece_alignment)
         return
 
     # === Observer callbacks

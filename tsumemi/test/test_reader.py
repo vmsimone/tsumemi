@@ -59,3 +59,11 @@ class TestReadKifu(unittest.TestCase):
         read_file(r"./tsumemi/test/test_kifus/branchedgame.kif", reader, visitor)
         # print(reader.game.position)
         # print(reader.game.movetree.to_latin())
+
+    def test_gote_first(self):
+        reader = KifReader()
+        visitor = GameBuilderPVis()
+        read_file(r"./tsumemi/test/test_kifus/gote_first.kif", reader, visitor)
+        from tsumemi.src.shogi.basetypes import Side
+        self.assertEqual(reader.game.position.turn, Side.GOTE)
+        self.assertEqual(reader.game.movetree.start_pos.split()[1], "w")

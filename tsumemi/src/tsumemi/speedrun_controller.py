@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 
 from tkinter import messagebox, ttk
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 
 import tsumemi.src.tsumemi.event as evt
 import tsumemi.src.tsumemi.game.game_controller as gamecon
@@ -108,6 +108,12 @@ class SpeedrunController(evt.IObserver):
             )
             self.abort_speedrun()
         return next_problem is not None
+
+    def auto_next_enabled(self) -> bool:
+        return self.target.settings.auto_next
+
+    def schedule_auto_next(self, callback: Callable[[], None]) -> None:
+        self.target.root.after(400, callback)
 
     def show_solution(self) -> None:
         self.target.main_viewcon.show_solution()

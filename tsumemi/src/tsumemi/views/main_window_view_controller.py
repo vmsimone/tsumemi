@@ -38,6 +38,13 @@ class MainWindowViewController:
     def flip_main_board(self, want_upside_down: bool) -> None:
         self.board_canvas.flip_board(want_upside_down)
 
+    def set_board_orientation_for_problem(self, want_upside_down: bool) -> None:
+        self.view.frm_nav_control.set_upside_down(want_upside_down)
+        self.flip_main_board(want_upside_down)
+
+    def apply_display_settings(self, piece_alignment: str) -> None:
+        self.board_canvas.set_piece_alignment(piece_alignment)
+
     def refresh_move_list(self) -> None:
         self.view.movelist_frame.refresh_content()
 

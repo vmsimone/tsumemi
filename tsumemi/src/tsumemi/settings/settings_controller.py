@@ -6,6 +6,7 @@ import os
 from typing import TYPE_CHECKING
 
 import tsumemi.src.tsumemi.settings.board_setting_choices as bchoices
+import tsumemi.src.tsumemi.settings.display_setting_choices as dchoices
 import tsumemi.src.tsumemi.settings.notation_setting_choices as nchoices
 import tsumemi.src.tsumemi.settings.piece_setting_choices as pchoices
 
@@ -25,6 +26,8 @@ def _default_config() -> configparser.ConfigParser:
     config = configparser.ConfigParser()
     config["skins"] = {"pieces": "TEXT", "board": "BROWN", "komadai": "WHITE"}
     config["notation"] = {"notation": "JAPANESE"}
+    config["solving"] = {"auto_next": "false"}
+    config["display"] = {"piece_alignment": "CENTER"}
     return config
 
 
@@ -57,6 +60,8 @@ class Settings:
         self.board_skin_controller = bchoices.BoardSkinSelectionController()
         self.piece_skin_controller = pchoices.PieceSkinSelectionController()
         self.komadai_skin_controller = bchoices.BoardSkinSelectionController()
+        self.piece_alignment_controller = dchoices.PieceAlignmentController()
+        self.auto_next_controller = dchoices.AutoNextController()
 
         notation_config_string = self.config.get(
             "notation", "notation", fallback="JAPANESE"
@@ -64,11 +69,25 @@ class Settings:
         board_config_string = self.config.get("skins", "board", fallback="BROWN")
         komadai_config_string = self.config.get("skins", "komadai", fallback="WHITE")
         piece_config_string = self.config.get("skins", "pieces", fallback="TEXT")
+        auto_next_config_string = self.config.get(
+            "solving", "auto_next", fallback="false"
+        )
+        piece_alignment_config_string = self.config.get(
+            "display", "piece_alignment", fallback="CENTER"
+        )
 
         self.notation_controller.select_by_config(notation_config_string)
         self.board_skin_controller.select_by_config(board_config_string)
         self.komadai_skin_controller.select_by_config(komadai_config_string)
         self.piece_skin_controller.select_by_config(piece_config_string)
+        self.auto_next_controller.select_by_config(auto_next_config_string)
+        self.piece_alignment_controller.select_by_config(
+            piece_alignment_config_string
+        )
+
+    @property
+    def auto_next(self) -> bool:
+        return self.auto_next_controller.get()
 
     def save(self) -> None:
         self._read_settings_from_choices()
@@ -80,6 +99,9 @@ class Settings:
         move_writer = self.notation_controller.get_move_writer()
         self.controller.apply_skin_settings(skin_settings)
         self.controller.apply_notation_settings(move_writer)
+        self.controller.apply_display_settings(
+            self.piece_alignment_controller.get_alignment()
+        )
 
     def get_skin_settings(self) -> skins.SkinSettings:
         piece_skin = self.piece_skin_controller.get_piece_skin()
@@ -92,6 +114,10 @@ class Settings:
             self.config["skins"] = _default_config()["skins"]
         if not self.config.has_section("notation"):
             self.config["notation"] = _default_config()["notation"]
+        if not self.config.has_section("solving"):
+            self.config["solving"] = _default_config()["solving"]
+        if not self.config.has_section("display"):
+            self.config["display"] = _default_config()["display"]
         self.config["skins"]["board"] = self.board_skin_controller.get_config_string()
         self.config["skins"]["komadai"] = (
             self.komadai_skin_controller.get_config_string()
@@ -99,6 +125,12 @@ class Settings:
         self.config["skins"]["pieces"] = self.piece_skin_controller.get_config_string()
         self.config["notation"]["notation"] = (
             self.notation_controller.get_config_string()
+        )
+        self.config["solving"]["auto_next"] = (
+            self.auto_next_controller.get_config_string()
+        )
+        self.config["display"]["piece_alignment"] = (
+            self.piece_alignment_controller.get_config_string()
         )
 
     def open_settings_window(self) -> None:

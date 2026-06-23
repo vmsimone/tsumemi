@@ -75,6 +75,8 @@ class SolutionShown(SpeedrunState):
         self.controller.stop_timer()
         self.controller.show_solution()
         self.controller.enable_move_navigation()
+        if self.controller.auto_next_enabled():
+            self.controller.schedule_auto_next(self.next_question)
 
     def next_question(self) -> None:
         if self.controller.go_next_question():

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from tsumemi.src.shogi.basetypes import KANJI_FROM_KTYPE, KomaType
+from tsumemi.src.shogi.basetypes import KANJI_FROM_KTYPE, KomaType, Side
 from tsumemi.src.shogi.square import KanjiNumber, Square
 from tsumemi.src.tsumemi.board_gui.board_image_cache import BoardImageCache
 from tsumemi.src.tsumemi.board_gui.board_meas import BoardMeasurements
@@ -25,10 +25,18 @@ NUM_ROWS = 9
 
 
 class BoardArtist:
+    PIECE_ALIGNMENT_CENTER = "CENTER"
+    PIECE_ALIGNMENT_EDGE = "EDGE"
+
     def __init__(
-        self, measurements: BoardMeasurements, skin: BoardSkin, is_upside_down: bool
+        self,
+        measurements: BoardMeasurements,
+        skin: BoardSkin,
+        is_upside_down: bool,
+        piece_alignment: str = PIECE_ALIGNMENT_CENTER,
     ) -> None:
         self.is_upside_down = is_upside_down
+        self.piece_alignment = piece_alignment
 
         self.background_id: int | None = None
         self.tile_backgrounds = BoardImageLayer()
@@ -62,6 +70,9 @@ class BoardArtist:
         if tile_image is not None:
             self._update_tile_backgrounds(canvas, tile_image)
 
+    def set_piece_alignment(self, piece_alignment: str) -> None:
+        self.piece_alignment = piece_alignment
+
     def flip(self) -> None:
         self.is_upside_down = not self.is_upside_down
 
@@ -78,9 +89,13 @@ class BoardArtist:
             ktype = KomaType.get(koma)
             invert = canvas.is_inverted(koma.side())
             if canvas.is_text():
-                self.display_text_koma(canvas, ktype, invert, row_idx, col_idx)
+                self.display_text_koma(
+                    canvas, ktype, invert, row_idx, col_idx, koma.side()
+                )
             else:
-                self.display_koma(canvas, ktype, invert, row_idx, col_idx)
+                self.display_koma(
+                    canvas, ktype, invert, row_idx, col_idx, koma.side()
+                )
 
     def apply_board_skin(self, canvas: BoardCanvas, skin: BoardSkin) -> None:
         if self.background_id is not None:
@@ -107,13 +122,16 @@ class BoardArtist:
         is_upside_down: bool,
         row_idx: int,
         col_idx: int,
+        side: Side,
     ) -> None:
         img = canvas.koma_image_cache.get_koma_image(
             ktype, is_upside_down=is_upside_down
         )
         id_ = self.tile_images.get_id(row_idx, col_idx)
         if id_ is not None and img is not None:
-            canvas.itemconfig(id_, image=img)
+            x, y, anchor = self._koma_xy_anchor(row_idx, col_idx, side)
+            canvas.coords(id_, x, y)
+            canvas.itemconfig(id_, image=img, anchor=anchor)
 
     def display_text_koma(
         self,
@@ -122,11 +140,29 @@ class BoardArtist:
         is_upside_down: bool,
         row_idx: int,
         col_idx: int,
+        side: Side,
     ) -> None:
         id_ = self.tile_texts.get_id(row_idx=row_idx, col_idx=col_idx)
         if id_ is not None:
             text = str(KANJI_FROM_KTYPE[ktype])
-            canvas.itemconfig(id_, text=text, angle=180 if is_upside_down else 0)
+            x, y, anchor = self._koma_xy_anchor(row_idx, col_idx, side)
+            canvas.coords(id_, x, y)
+            canvas.itemconfig(
+                id_, text=text, angle=180 if is_upside_down else 0, anchor=anchor
+            )
+
+    def _koma_xy_anchor(
+        self, row_idx: int, col_idx: int, side: Side
+    ) -> tuple[int, int, str]:
+        if self.piece_alignment == self.PIECE_ALIGNMENT_CENTER:
+            x, y = self._drawing_coords.idxs_to_xy(col_idx, row_idx, "xy")
+            return x, y, "center"
+        x, _ = self._drawing_coords.idxs_to_xy(col_idx, row_idx, "x")
+        if side.is_sente():
+            _, y = self._drawing_coords.idxs_to_xy(col_idx, row_idx + 1, "")
+            return x, y - 2, "s"
+        x, y = self._drawing_coords.idxs_to_xy(col_idx, row_idx, "")
+        return x, y + 2, "n"
 
     def lift_click_layer(self, canvas: BoardCanvas) -> None:
         canvas.lift("click_tile")
@@ -137,6 +173,7 @@ class BoardArtist:
         ktype: KomaType,
         promotion_square: Square,
         is_upside_down: bool,
+        side: Side,
     ) -> tuple[int | None, int | None, int | None]:
         """
         Display on a `canvas` the interface for user to choose whether to promote a koma.
@@ -145,10 +182,10 @@ class BoardArtist:
         id_cover = self._draw_promotion_cover(canvas)
         col_idx, row_idx = self.sq_to_idxs(promotion_square)
         id_promoted = self._draw_promotion_prompt_koma(
-            canvas, row_idx, col_idx, ktype.promote(), is_upside_down
+            canvas, row_idx, col_idx, ktype.promote(), is_upside_down, side
         )
         id_unpromoted = self._draw_promotion_prompt_koma(
-            canvas, row_idx + 1, col_idx, ktype, is_upside_down
+            canvas, row_idx + 1, col_idx, ktype, is_upside_down, side
         )
         return (id_cover, id_promoted, id_unpromoted)
 
@@ -168,15 +205,16 @@ class BoardArtist:
         col_idx: int,
         ktype: KomaType,
         is_upside_down: bool,
+        side: Side,
     ) -> int | None:
         if ktype == KomaType.NONE:
             return None
         img = canvas.koma_image_cache.get_koma_image(
             ktype, is_upside_down=is_upside_down
         )
-        x, y = self._drawing_coords.idxs_to_xy(col_idx, row_idx, centering="xy")
+        x, y, anchor = self._koma_xy_anchor(row_idx, col_idx, side)
         return canvas.create_image(
-            x, y, image=img, anchor="center", tags=("promotion_prompt",)
+            x, y, image=img, anchor=anchor, tags=("promotion_prompt",)
         )
 
     def clear_promotion_prompts(self, canvas: BoardCanvas) -> None:

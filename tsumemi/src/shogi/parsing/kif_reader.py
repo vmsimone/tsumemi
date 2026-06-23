@@ -100,6 +100,10 @@ class KifReader(Reader):
                 # Variation
                 self.read_variation(line)
                 # visitor.visit_variation(self, line)
+            elif line.startswith("後手番"):
+                self._set_side_to_move(Side.GOTE)
+            elif line.startswith("先手番"):
+                self._set_side_to_move(Side.SENTE)
             else:
                 # Unknown line; skip it
                 pass
@@ -143,6 +147,11 @@ class KifReader(Reader):
                 )
         movetree.start_pos = pos.to_sfen()
         return
+
+    def _set_side_to_move(self, side: Side) -> None:
+        self.game.position.turn = side
+        if self.game.movetree.start_pos:
+            self.game.movetree.start_pos = self.game.position.to_sfen()
 
     def read_move(self, line: str) -> Move:
         game = self.game

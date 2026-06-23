@@ -17,12 +17,12 @@ class NavControlFrame(ttk.Frame):
         ) -> None:
         ttk.Frame.__init__(self, parent)
         self.nav_controls = ttk.Frame(self)
-        want_upside_down = tk.BooleanVar(value=False)
+        self.want_upside_down = tk.BooleanVar(value=False)
         self.chk_upside_down = ttk.Checkbutton(
             self,
             text="Upside-down mode",
-            command=lambda: flip_board(want_upside_down.get()),
-            variable=want_upside_down, onvalue=True, offvalue=False
+            command=lambda: flip_board(self.want_upside_down.get()),
+            variable=self.want_upside_down, onvalue=True, offvalue=False
         )
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=0)
@@ -47,6 +47,9 @@ class NavControlFrame(ttk.Frame):
         self.nav_controls.grid(row=0, column=0)
         self.chk_upside_down.grid(row=1, column=0)
         return
+
+    def set_upside_down(self, value: bool) -> None:
+        self.want_upside_down.set(value)
 
     def make_nav_pane_normal(self,
             parent: tk.Widget,

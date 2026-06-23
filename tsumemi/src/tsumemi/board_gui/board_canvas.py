@@ -159,6 +159,10 @@ class BoardCanvas(tk.Canvas, evt.IObserver):
             self.south_komadai_artist.switch_side()
             self.draw()
 
+    def set_piece_alignment(self, piece_alignment: str) -> None:
+        self.board_artist.set_piece_alignment(piece_alignment)
+        self._draw_board_position()
+
     def set_focus(self, sq: Square, ktype: KomaType = KomaType.NONE) -> None:
         self._unhighlight_square()
         if sq == Square.HAND:
@@ -204,7 +208,9 @@ class BoardCanvas(tk.Canvas, evt.IObserver):
     def prompt_promotion(self, sq: Square, ktype: KomaType) -> None:
         invert = self.is_inverted(self.position.turn)
         id_cover, id_promoted, id_unpromoted = (
-            self.board_artist.draw_promotion_interface(self, ktype, sq, invert)
+            self.board_artist.draw_promotion_interface(
+                self, ktype, sq, invert, self.position.turn
+            )
         )
         callback = functools.partial(
             self._prompt_promotion_callback, sq=sq, ktype=ktype
