@@ -129,9 +129,9 @@ class BoardArtist:
         )
         id_ = self.tile_images.get_id(row_idx, col_idx)
         if id_ is not None and img is not None:
-            x, y, anchor = self._koma_xy_anchor(row_idx, col_idx, side, is_text=False)
+            x, y, _anchor = self._koma_position(row_idx, col_idx, side, is_text=False)
             canvas.coords(id_, x, y)
-            canvas.itemconfig(id_, image=img, anchor=anchor)
+            canvas.itemconfig(id_, image=img)
 
     def display_text_koma(
         self,
@@ -145,27 +145,28 @@ class BoardArtist:
         id_ = self.tile_texts.get_id(row_idx=row_idx, col_idx=col_idx)
         if id_ is not None:
             text = str(KANJI_FROM_KTYPE[ktype])
-            x, y, anchor = self._koma_xy_anchor(row_idx, col_idx, side, is_text=True)
+            x, y, anchor = self._koma_position(
+                row_idx, col_idx, side, is_text=True
+            )
             canvas.coords(id_, x, y)
             canvas.itemconfig(
                 id_, text=text, angle=180 if is_upside_down else 0, anchor=anchor
             )
 
-    def _koma_xy_anchor(
-        self, row_idx: int, col_idx: int, side: Side, *, is_text: bool = False
+    def _koma_position(
+        self, row_idx: int, col_idx: int, side: Side, *, is_text: bool
     ) -> tuple[int, int, str]:
         if self.piece_alignment == self.PIECE_ALIGNMENT_CENTER:
             x, y = self._drawing_coords.idxs_to_xy(col_idx, row_idx, "xy")
             return x, y, "center"
-        x, y = self._drawing_coords.idxs_to_xy(col_idx, row_idx, "xy")
-        offset = int(self._drawing_coords._sq_h * 0.2)
+
+        x, top_y = self._drawing_coords.idxs_to_xy(col_idx, row_idx, "x")
+        sq_h = self._drawing_coords._sq_h
         if side.is_sente():
-            y += offset
-            anchor = "s" if is_text else "center"
-        else:
-            y -= offset
-            anchor = "n" if is_text else "center"
-        return x, y, anchor
+            y = int(top_y + sq_h * (0.95 if is_text else 0.70))
+            return x, y, "s" if is_text else "center"
+        y = int(top_y + sq_h * (0.05 if is_text else 0.30))
+        return x, y, "n" if is_text else "center"
 
     def lift_click_layer(self, canvas: BoardCanvas) -> None:
         canvas.lift("click_tile")
@@ -215,9 +216,11 @@ class BoardArtist:
         img = canvas.koma_image_cache.get_koma_image(
             ktype, is_upside_down=is_upside_down
         )
-        x, y, anchor = self._koma_xy_anchor(row_idx, col_idx, side, is_text=False)
+        if img is None:
+            return None
+        x, y, _anchor = self._koma_position(row_idx, col_idx, side, is_text=False)
         return canvas.create_image(
-            x, y, image=img, anchor=anchor, tags=("promotion_prompt",)
+            x, y, image=img, anchor="center", tags=("promotion_prompt",)
         )
 
     def clear_promotion_prompts(self, canvas: BoardCanvas) -> None:

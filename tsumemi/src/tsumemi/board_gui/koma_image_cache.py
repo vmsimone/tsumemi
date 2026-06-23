@@ -6,7 +6,7 @@ import os
 from typing import TYPE_CHECKING
 from PIL import Image, ImageTk
 
-from tsumemi.src.shogi.basetypes import KomaType
+from tsumemi.src.shogi.basetypes import KOMA_IMAGE_TYPES, KomaType
 from tsumemi.src.tsumemi.board_gui.img_handlers import resize_image
 
 if TYPE_CHECKING:
@@ -39,7 +39,10 @@ class KomaImageCache:
     def get_koma_image(
         self, ktype: KomaType, is_upside_down: bool
     ) -> ImageTk.PhotoImage | None:
-        return self.resized.get(self._get_key(ktype, is_upside_down))
+        key = self._get_key(ktype, is_upside_down)
+        if key not in self.resized and self.skin.path:
+            self._load_koma_type(self.skin.path, ktype)
+        return self.resized.get(key)
 
     def update_dimensions(self, width: float, height: float) -> None:
         self.width = width
@@ -59,23 +62,24 @@ class KomaImageCache:
         if not image_directory:
             self.skin = skin
             return
-        for ktype in KomaType:
-            if ktype == KomaType.NONE:
-                continue
-            img_upright = _open_koma_png(image_directory, ktype, is_upside_down=False)
-            img_upside_down = _open_koma_png(
-                image_directory, ktype, is_upside_down=True
-            )
-            upright_key = self._get_key(ktype, False)
-            upside_down_key = self._get_key(ktype, True)
-            self.raws[upright_key] = img_upright
-            self.resized[upright_key] = resize_image(
-                img_upright, self.width, self.height
-            )
-            self.raws[upside_down_key] = img_upside_down
-            self.resized[upside_down_key] = resize_image(
-                img_upside_down, self.width, self.height
-            )
+        for ktype in KOMA_IMAGE_TYPES:
+            self._load_koma_type(image_directory, ktype)
+
+    def _load_koma_type(self, image_directory: PathLike, ktype: KomaType) -> None:
+        img_upright = _open_koma_png(image_directory, ktype, is_upside_down=False)
+        img_upside_down = _open_koma_png(
+            image_directory, ktype, is_upside_down=True
+        )
+        upright_key = self._get_key(ktype, False)
+        upside_down_key = self._get_key(ktype, True)
+        self.raws[upright_key] = img_upright
+        self.resized[upright_key] = resize_image(
+            img_upright, self.width, self.height
+        )
+        self.raws[upside_down_key] = img_upside_down
+        self.resized[upside_down_key] = resize_image(
+            img_upside_down, self.width, self.height
+        )
 
 
 def _open_koma_png(

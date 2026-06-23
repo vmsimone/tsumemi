@@ -74,6 +74,26 @@ class KomaType(IntFlag):
         return " * " if self == KomaType.NONE else self.name  # type: ignore
 
 
+# IntFlag iteration only yields power-of-two members (FU, KY, GI, OU), so PNG
+# loading must use an explicit list covering every piece type with image assets.
+KOMA_IMAGE_TYPES: tuple[KomaType, ...] = (
+    KomaType.FU,
+    KomaType.KY,
+    KomaType.KE,
+    KomaType.GI,
+    KomaType.KI,
+    KomaType.KA,
+    KomaType.HI,
+    KomaType.OU,
+    KomaType.TO,
+    KomaType.NY,
+    KomaType.NK,
+    KomaType.NG,
+    KomaType.UM,
+    KomaType.RY,
+)
+
+
 class Koma(IntFlag):
     """Enum representing shogi pieces. Keys are CSA piece names.
     IntFlag is used to allow integer addition and bitwise operations.
