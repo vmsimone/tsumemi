@@ -11,6 +11,7 @@ import tsumemi.src.tsumemi.settings.notation_setting_choices as nchoices
 import tsumemi.src.tsumemi.settings.piece_setting_choices as pchoices
 
 from tsumemi.src.tsumemi import skins
+from tsumemi.src.tsumemi.paths import resource_path
 from tsumemi.src.tsumemi.settings.settings_window import SettingsWindow
 
 if TYPE_CHECKING:
@@ -19,7 +20,7 @@ if TYPE_CHECKING:
     PathLike = str | os.PathLike[str]
 
 
-CONFIG_PATH = os.path.relpath(r"tsumemi/resources/config.ini")
+CONFIG_PATH = resource_path("config.ini")
 
 
 def _default_config() -> configparser.ConfigParser:
@@ -27,7 +28,7 @@ def _default_config() -> configparser.ConfigParser:
     config["skins"] = {"pieces": "TEXT", "board": "BROWN", "komadai": "WHITE"}
     config["notation"] = {"notation": "JAPANESE"}
     config["solving"] = {"auto_next": "false"}
-    config["display"] = {"piece_alignment": "CENTER"}
+    config["display"] = {"piece_alignment": "EDGE"}
     return config
 
 
@@ -73,7 +74,7 @@ class Settings:
             "solving", "auto_next", fallback="false"
         )
         piece_alignment_config_string = self.config.get(
-            "display", "piece_alignment", fallback="CENTER"
+            "display", "piece_alignment", fallback="EDGE"
         )
 
         self.notation_controller.select_by_config(notation_config_string)

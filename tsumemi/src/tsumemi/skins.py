@@ -5,14 +5,16 @@ import os
 from enum import Enum
 from typing import TYPE_CHECKING
 
+from tsumemi.src.tsumemi.paths import resource_path
+
 if TYPE_CHECKING:
     from typing import Tuple, Union
 
     PathLike = Union[str, os.PathLike[str]]
 
 
-BOARD_IMAGES_PATH = os.path.relpath(r"tsumemi/resources/images/boards")
-PIECE_IMAGES_PATH = os.path.relpath(r"tsumemi/resources/images/pieces")
+BOARD_IMAGES_PATH = resource_path("images", "boards")
+PIECE_IMAGES_PATH = resource_path("images", "pieces")
 
 
 class BoardSkin(Enum):

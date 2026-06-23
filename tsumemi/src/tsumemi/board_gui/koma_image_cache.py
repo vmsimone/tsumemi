@@ -88,4 +88,8 @@ def _open_koma_png(
     """
     extension = "png"
     filename = f"{1 if is_upside_down else 0}{ktype.to_csa()}.{extension}"
-    return Image.open(os.path.join(image_directory, filename))
+    filepath = os.path.join(image_directory, filename)
+    if not os.path.isfile(filepath):
+        logger.warning("Piece image not found: %s", filepath)
+        return Image.new("RGBA", (1, 1), "#00000000")
+    return Image.open(filepath)

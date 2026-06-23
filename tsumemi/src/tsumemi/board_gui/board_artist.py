@@ -129,7 +129,7 @@ class BoardArtist:
         )
         id_ = self.tile_images.get_id(row_idx, col_idx)
         if id_ is not None and img is not None:
-            x, y, anchor = self._koma_xy_anchor(row_idx, col_idx, side)
+            x, y, anchor = self._koma_xy_anchor(row_idx, col_idx, side, is_text=False)
             canvas.coords(id_, x, y)
             canvas.itemconfig(id_, image=img, anchor=anchor)
 
@@ -145,24 +145,27 @@ class BoardArtist:
         id_ = self.tile_texts.get_id(row_idx=row_idx, col_idx=col_idx)
         if id_ is not None:
             text = str(KANJI_FROM_KTYPE[ktype])
-            x, y, anchor = self._koma_xy_anchor(row_idx, col_idx, side)
+            x, y, anchor = self._koma_xy_anchor(row_idx, col_idx, side, is_text=True)
             canvas.coords(id_, x, y)
             canvas.itemconfig(
                 id_, text=text, angle=180 if is_upside_down else 0, anchor=anchor
             )
 
     def _koma_xy_anchor(
-        self, row_idx: int, col_idx: int, side: Side
+        self, row_idx: int, col_idx: int, side: Side, *, is_text: bool = False
     ) -> tuple[int, int, str]:
         if self.piece_alignment == self.PIECE_ALIGNMENT_CENTER:
             x, y = self._drawing_coords.idxs_to_xy(col_idx, row_idx, "xy")
             return x, y, "center"
-        x, _ = self._drawing_coords.idxs_to_xy(col_idx, row_idx, "x")
+        x, y = self._drawing_coords.idxs_to_xy(col_idx, row_idx, "xy")
+        offset = int(self._drawing_coords._sq_h * 0.2)
         if side.is_sente():
-            _, y = self._drawing_coords.idxs_to_xy(col_idx, row_idx + 1, "")
-            return x, y - 2, "s"
-        x, y = self._drawing_coords.idxs_to_xy(col_idx, row_idx, "")
-        return x, y + 2, "n"
+            y += offset
+            anchor = "s" if is_text else "center"
+        else:
+            y -= offset
+            anchor = "n" if is_text else "center"
+        return x, y, anchor
 
     def lift_click_layer(self, canvas: BoardCanvas) -> None:
         canvas.lift("click_tile")
@@ -212,7 +215,7 @@ class BoardArtist:
         img = canvas.koma_image_cache.get_koma_image(
             ktype, is_upside_down=is_upside_down
         )
-        x, y, anchor = self._koma_xy_anchor(row_idx, col_idx, side)
+        x, y, anchor = self._koma_xy_anchor(row_idx, col_idx, side, is_text=False)
         return canvas.create_image(
             x, y, image=img, anchor=anchor, tags=("promotion_prompt",)
         )

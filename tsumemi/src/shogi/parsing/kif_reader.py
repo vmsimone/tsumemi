@@ -65,10 +65,12 @@ KIF_VARIATION_REGEX: re.Pattern[str] = re.compile(
 class KifReader(Reader):
     def __init__(self) -> None:
         super().__init__()
+        self._start_side = Side.SENTE
         return
 
     def read(self, handle: typing.TextIO, visitor: ParserVisitor) -> Game:
         self.game.reset()
+        self._start_side = Side.SENTE
         line = handle.readline()
         while line != "":
             line = line.lstrip().rstrip()
@@ -77,6 +79,7 @@ class KifReader(Reader):
             elif line.startswith("手合割："):
                 handicap_sfen = self.read_handicap_line(line)
                 visitor.visit_handicap(self, handicap_sfen)
+                self._start_side = self.game.position.turn
             elif line.startswith("後手の持駒："):
                 # Signals start of BOD, read all of it
                 bod_lines = [line]
@@ -149,6 +152,7 @@ class KifReader(Reader):
         return
 
     def _set_side_to_move(self, side: Side) -> None:
+        self._start_side = side
         self.game.position.turn = side
         if self.game.movetree.start_pos:
             self.game.movetree.start_pos = self.game.position.to_sfen()
@@ -173,7 +177,11 @@ class KifReader(Reader):
         start_sq = _read_kif_origin_sq(sq_origin, is_drop)
         is_promotion = (drop_prom == "成")
         # Construct Move
-        side = Side.SENTE if (movenum % 2 == 1) else Side.GOTE
+        side = (
+            self._start_side
+            if (movenum % 2 == 1)
+            else self._start_side.switch()
+        )
         koma = Koma.make(side, ktype)
         return Move(start_sq, end_sq, is_promotion, koma, captured)
 
