@@ -163,9 +163,9 @@ class BoardArtist:
         x, top_y = self._drawing_coords.idxs_to_xy(col_idx, row_idx, "x")
         sq_h = self._drawing_coords._sq_h
         if side.is_sente():
-            y = int(top_y + sq_h * (0.95 if is_text else 0.70))
+            y = int(top_y + sq_h * (0.95 if is_text else 0.60))
             return x, y, "s" if is_text else "center"
-        y = int(top_y + sq_h * (0.05 if is_text else 0.30))
+        y = int(top_y + sq_h * (0.05 if is_text else 0.40))
         return x, y, "n" if is_text else "center"
 
     def lift_click_layer(self, canvas: BoardCanvas) -> None:

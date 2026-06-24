@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from tsumemi.src.shogi.basetypes import Side
 from tsumemi.src.tsumemi import skins
 from tsumemi.src.tsumemi.views.main_window_view import MainWindowView
 
@@ -36,6 +37,9 @@ class MainWindowViewController:
         self.board_canvas.set_position(pos)
 
     def flip_main_board(self, want_upside_down: bool) -> None:
+        self.board_canvas.set_play_as_side(
+            Side.GOTE if want_upside_down else Side.SENTE
+        )
         self.board_canvas.flip_board(want_upside_down)
 
     def set_board_orientation_for_problem(self, want_upside_down: bool) -> None:

@@ -52,6 +52,8 @@ class BoardCanvas(tk.Canvas, evt.IObserver):
         self.width: int = width
         self.height: int = height
         self.is_upside_down: bool = False
+        # Which side the solver plays as; locks piece art for the whole problem.
+        self.play_as_side: Side = Side.SENTE
         tk.Canvas.__init__(self, parent, width=width, height=height, *args, **kwargs)
         evt.IObserver.__init__(self)
         # Specify source of board data
@@ -151,13 +153,18 @@ class BoardCanvas(tk.Canvas, evt.IObserver):
         self.draw()
 
     def flip_board(self, want_upside_down: bool) -> None:
-        # For upside-down mode
-        if self.is_upside_down != want_upside_down:
-            self.is_upside_down = want_upside_down
-            self.board_artist.flip()
+        orientation_changed = self.is_upside_down != want_upside_down
+        self.is_upside_down = want_upside_down
+        self.board_artist.is_upside_down = want_upside_down
+        if orientation_changed:
             self.north_komadai_artist.switch_side()
             self.south_komadai_artist.switch_side()
             self.draw()
+        else:
+            self._draw_board_position()
+
+    def set_play_as_side(self, side: Side) -> None:
+        self.play_as_side = side
 
     def set_piece_alignment(self, piece_alignment: str) -> None:
         self.board_artist.set_piece_alignment(piece_alignment)
@@ -255,7 +262,9 @@ class BoardCanvas(tk.Canvas, evt.IObserver):
         self.board_artist.clear_promotion_prompts(self)
 
     def is_inverted(self, side: Side) -> bool:
-        return not (side.is_sente() ^ self.is_upside_down)
+        # Upright PNG for the solver's pieces; inverted PNG for the opponent.
+        # Locked to play_as_side for the problem, not the current turn.
+        return side != self.play_as_side
 
     def is_text(self) -> bool:
         return self.koma_image_cache.skin == PieceSkin.TEXT

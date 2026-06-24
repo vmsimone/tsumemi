@@ -119,11 +119,10 @@ class RootController(evt.IObserver):
         if game is None:
             return
         self.main_viewcon.set_solution(self.solution_str_from_game(game))
-        self.main_game.set_game(game)
-
         self.main_viewcon.set_board_orientation_for_problem(
             game.position.turn == Side.GOTE
         )
+        self.main_game.set_game(game)
         self.main_viewcon.set_main_board(game.position)
         self.main_viewcon.refresh_move_list()
         self.main_viewcon.enable_move_input()

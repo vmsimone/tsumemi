@@ -207,7 +207,10 @@ class KomadaiArtist:
         tags: tuple[str, ...],
     ) -> int:
         img = canvas.komadai_koma_image_cache.get_koma_image(
-            ktype, is_upside_down=False
+            ktype,
+            is_upside_down=canvas.is_inverted(
+                Side.SENTE if self.is_sente else Side.GOTE
+            ),
         )
         return canvas.create_image(x, y, image=img, anchor="center", tags=tags)
 
