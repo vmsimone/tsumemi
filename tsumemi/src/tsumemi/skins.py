@@ -68,6 +68,10 @@ class PieceSkin(Enum):
         "CouchTomato internationalised symbols (single colour)",
         os.path.join(PIECE_IMAGES_PATH, r"tomato_monochrome"),
     )
+    LISHOGI = (
+        "Lishogi Import",
+        os.path.join(PIECE_IMAGES_PATH, r"lishogi"),
+    )
 
     def __init__(self, desc: str, path: PathLike) -> None:
         self.desc: str = desc
