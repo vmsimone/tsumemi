@@ -9,3 +9,5 @@ build/
 tsumemilog.log
 ignore/
 config.ini
+mobile/build/
+mobile/logs/

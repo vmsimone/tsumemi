@@ -1,0 +1,51 @@
+[build-system]
+requires = ["briefcase"]
+
+[project]
+name = "tsumemimobile"
+version = "0.1.0"
+description = "Offline Android tsumeshogi speedrun app"
+requires-python = ">=3.10"
+
+[tool.briefcase]
+project_name = "Tsumemi Mobile"
+bundle = "org.vmsimone"
+version = "0.1.0"
+url = "https://github.com/vmsimone/tsumemi"
+license = "GPL-3.0+"
+license-files = ["../COPYING"]
+author = "Vincent Simone"
+author_email = ""
+
+[tool.briefcase.app.tsumemimobile]
+formal_name = "Tsumemi"
+description = "Offline tsumeshogi speedrun trainer"
+long_description = """Offline tsumeshogi speedrun app for Android.
+Import KIF/KIFU problem sets and run timed drills."""
+sources = [
+    "src/tsumemimobile",
+    "../tsumemi",
+    "resources",
+]
+requires = [
+    "kivy>=2.3.0",
+]
+
+[tool.briefcase.app.tsumemimobile.android]
+permission.storage = true
+permission.INTERNET = false
+
+[tool.briefcase.app.tsumemimobile.iOS]
+supported = false
+
+[tool.briefcase.app.tsumemimobile.macOS]
+supported = false
+
+[tool.briefcase.app.tsumemimobile.linux]
+supported = false
+
+[tool.briefcase.app.tsumemimobile.windows]
+supported = false
+
+[tool.briefcase.app.tsumemimobile.web]
+supported = false
